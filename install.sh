@@ -155,26 +155,26 @@ if [ "$salt_master" == 'yes' ]; then
 
   if [ "$private_key" != "" ]; then
   cat << 'EOF' > /root/.ssh/id_rsa
-  $private_key
-  EOF
+$private_key
+EOF
   chmod 400 /root/.ssh/id_rsa
   fi
 
   [ ! -d /etc/salt/master.d ] && mkdir -p /etc/salt/master.d
   cat << 'EOF' > /etc/salt/master.d/master.conf
-  file_roots:
-    base:
-    - /usr/share/salt-formulas/env
-  pillar_opts: False
-  open_mode: True
-  reclass: &reclass
-    storage_type: yaml_fs
-    inventory_base_uri: /srv/salt/reclass
-  ext_pillar:
-    - reclass: *reclass
-  master_tops:
-    reclass: *reclass
-  EOF
+file_roots:
+  base:
+  - /usr/share/salt-formulas/env
+pillar_opts: False
+open_mode: True
+reclass: &reclass
+  storage_type: yaml_fs
+  inventory_base_uri: /srv/salt/reclass
+ext_pillar:
+  - reclass: *reclass
+master_tops:
+  reclass: *reclass
+EOF
 
   echo "Configuring reclass ..."
   ssh-keyscan -H github.com >> ~/.ssh/known_hosts || wait_condition_send "FAILURE" "Failed to scan github.com key."
@@ -199,24 +199,24 @@ if [ "$salt_master" == 'yes' ]; then
 
   mkdir -p /srv/salt/reclass/nodes/_generated
 
-  echo "classes:
-  - cluster.$cluster_name.infra.config
-  parameters:
-    _param:
-      linux_system_codename: xenial
-      reclass_data_revision: $reclass_branch
-      reclass_data_repository: $reclass_address
-      cluster_name: $cluster_name
-      cluster_domain: $node_domain
-    linux:
-      system:
-        name: $node_hostname
-        domain: $node_domain
-    reclass:
-      storage:
-        data_source:
-          engine: local
-  " > /srv/salt/reclass/nodes/_generated/$node_hostname.$node_domain.yml
+echo "classes:
+- cluster.$cluster_name.infra.config
+parameters:
+  _param:
+    linux_system_codename: xenial
+    reclass_data_revision: $reclass_branch
+    reclass_data_repository: $reclass_address
+    cluster_name: $cluster_name
+    cluster_domain: $node_domain
+  linux:
+    system:
+      name: $node_hostname
+      domain: $node_domain
+  reclass:
+    storage:
+      data_source:
+        engine: local
+" > /srv/salt/reclass/nodes/_generated/$node_hostname.$node_domain.yml
 
   FORMULA_PATH=${FORMULA_PATH:-/usr/share/salt-formulas}
   FORMULA_REPOSITORY=${FORMULA_REPOSITORY:-deb [arch=amd64] http://apt-mk.mirantis.com/xenial testing salt}
@@ -281,11 +281,11 @@ if [ "$salt_master" == 'yes' ]; then
 
   [ ! -d /etc/reclass ] && mkdir /etc/reclass
   cat << 'EOF' > /etc/reclass/reclass-config.yml
-  storage_type: yaml_fs
-  pretty_print: True
-  output: yaml
-  inventory_base_uri: /srv/salt/reclass
-  EOF
+storage_type: yaml_fs
+pretty_print: True
+output: yaml
+inventory_base_uri: /srv/salt/reclass
+EOF
 
   echo "Restarting salt-master service ..."
   systemctl restart salt-master || wait_condition_send "FAILURE" "Failed to restart salt-master service."
