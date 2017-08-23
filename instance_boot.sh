@@ -80,6 +80,13 @@ if [ -z "$saltversion" ]; then
 fi
 echo "Using Salt version $saltversion"
 
+# Install cfn-signal is AWS
+if [ ! -z "$aws_instance_id" ]; then
+	apt-get update
+	apt-get install -y python-pip
+	pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+fi
+
 echo "Preparing base OS ..."
 case "$node_os" in
     trusty)
