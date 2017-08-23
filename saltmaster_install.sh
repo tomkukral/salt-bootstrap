@@ -127,7 +127,7 @@ else
 		[ ! -L "/usr/share/salt-formulas/env/${formula_service}" ] && \
             		ln -sf ${FORMULA_PATH}/env/_formulas/${formula}/${formula} /usr/share/salt-formulas/env/${formula}
     		[ ! -L "/srv/salt/reclass/classes/service/${formula}" ] && \
-			ln -s ${FORMULA_PATH}/env/_formulas/${formula}/meta /srv/salt/reclass/classes/service/${formula}
+			ln -s ${FORMULA_PATH}/env/_formulas/${formula}/metadata /srv/salt/reclass/classes/service/${formula}
 	done
 fi
 
