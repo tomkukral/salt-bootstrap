@@ -80,31 +80,28 @@ parameters:
         engine: local
 " > /srv/salt/reclass/nodes/_generated/$node_hostname.$node_domain.yml
 
-#node_ip="$(ip a | awk -v prefix="^    inet $network01_prefix[.]" '$0 ~ prefix {split($2, a, "/"); print a[1]}')"
-#node_control_ip="$(ip a | awk -v prefix="^    inet $network02_prefix[.]" '$0 ~ prefix {split($2, a, "/"); print a[1]}')"
-#node_control_ip="127.0.0.1"
-#node_ip="127.0.0.1"
-#echo "parameters:
-#  _param:
-#    infra_config_address: $node_control_ip
-#    infra_config_deploy_address: $node_ip" > /srv/salt/reclass/classes/cluster/overrides.yml
-
 FORMULA_PATH=${FORMULA_PATH:-/usr/share/salt-formulas}
 FORMULA_REPOSITORY=${FORMULA_REPOSITORY:-deb [arch=amd64] http://apt-mk.mirantis.com/xenial testing salt}
 FORMULA_GPG=${FORMULA_GPG:-http://apt-mk.mirantis.com/public.gpg}
+FORMULA_SOURCE=${FORMULA_SOURCE:-pkg}
+
+FORMULA_GIT_BASE=${FORMULA_GIT_BASE:-https://github.com/salt-formulas}
+FORMULA_BRANCH=${FORMULA_BRANCH:-master}
 
 echo "Configuring salt master formulas ..."
 which wget > /dev/null || (aptget_wrapper update; aptget_wrapper install -y wget)
 
-echo "${FORMULA_REPOSITORY}" > /etc/apt/sources.list.d/mcp_salt.list
-wget -O - "${FORMULA_GPG}" | apt-key add - || wait_condition_send "FAILURE" "Failed to add formula key."
+if [ "$FORMULA_SOURCE" == "pkg" ]; then
+	echo "${FORMULA_REPOSITORY}" > /etc/apt/sources.list.d/mcp_salt.list
+	wget -O - "${FORMULA_GPG}" | apt-key add - || wait_condition_send "FAILURE" "Failed to add formula key."
+fi
 
 aptget_wrapper clean
 aptget_wrapper update
 
 [ ! -d /srv/salt/reclass/classes/service ] && mkdir -p /srv/salt/reclass/classes/service
 
-declare -a FORMULAS_SALT_MASTER=("linux" "reclass" "salt" "openssh" "ntp" "git" "nginx" "collectd" "sensu" "heka" "sphinx" "keystone" "mysql" "grafana" "haproxy" "rsyslog" "memcached" "horizon" "telegraf" "prometheus" "rabbitmq")
+declare -a FORMULAS_SALT_MASTER=("linux" "reclass" "salt" "openssh" "ntp" "git" "rsyslog")
 
 # Source bootstrap_vars for specific cluster if specified.
 for cluster in /srv/salt/reclass/classes/cluster/*/; do
@@ -121,8 +118,16 @@ fi
 # Patch name of the package for services with _ in name
 FORMULA_PACKAGES=(`echo ${FORMULAS_SALT_MASTER[@]//_/-}`)
 
-echo -e "\nInstalling all required salt formulas\n"
-aptget_wrapper install -y "${FORMULA_PACKAGES[@]/#/salt-formula-}"
+echo -e "\nInstalling all required salt formulas from ${FORMULA_SOUCE}\n"
+if [ "$FORMULA_SOURCE" == "pkg" ]; then
+	aptget_wrapper install -y "${FORMULA_PACKAGES[@]/#/salt-formula-}"
+else
+	for formula in "${FORMULAS_SALT_MASTER[@]}"; do
+		echo git clone ${FORMULA_GIT_BASE}/salt-formula-${formula}.git ${FORMULA_PATH}/env/_formulas/${formula} -b ${FORMULA_BRANCH}
+	done
+
+	exit 0
+fi
 
 for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
     echo -e "\nLink service metadata for formula ${formula_service} ...\n"
@@ -131,7 +136,7 @@ for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
 done
 
 [ ! -d /srv/salt/env ] && mkdir -p /srv/salt/env
-[ ! -L /srv/salt/env/prd ] && ln -s ${FORMULA_PATH}/env /srv/salt/env/prd
+[ ! -L /srv/salt/env/dev ] && ln -s ${FORMULA_PATH}/env /srv/salt/env/dev
 
 [ ! -d /etc/reclass ] && mkdir /etc/reclass
 cat << 'EOF' > /etc/reclass/reclass-config.yml
