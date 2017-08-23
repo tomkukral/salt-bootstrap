@@ -123,7 +123,7 @@ if [ "$FORMULA_SOURCE" == "pkg" ]; then
 	aptget_wrapper install -y "${FORMULA_PACKAGES[@]/#/salt-formula-}"
 else
 	for formula in "${FORMULAS_SALT_MASTER[@]}"; do
-		echo git clone ${FORMULA_GIT_BASE}/salt-formula-${formula}.git ${FORMULA_PATH}/env/_formulas/${formula} -b ${FORMULA_BRANCH}
+		git clone ${FORMULA_GIT_BASE}/salt-formula-${formula}.git ${FORMULA_PATH}/env/_formulas/${formula} -b ${FORMULA_BRANCH}
 	done
 
 	exit 0
