@@ -124,9 +124,11 @@ if [ "$FORMULA_SOURCE" == "pkg" ]; then
 else
 	for formula in "${FORMULAS_SALT_MASTER[@]}"; do
 		git clone ${FORMULA_GIT_BASE}/salt-formula-${formula}.git ${FORMULA_PATH}/env/_formulas/${formula} -b ${FORMULA_BRANCH}
+		[ ! -L "/usr/share/salt-formulas/env/${formula_service}" ] && \
+            		ln -sf ${FORMULA_PATH}/env/_formulas/${formula}/${formula} /usr/share/salt-formulas/env/${formula}
+    		[ ! -L "/srv/salt/reclass/classes/service/${formula}" ] && \
+			ln -s ${FORMULA_PATH}/env/_formulas/${formula}/meta /srv/salt/reclass/classes/service/${formula}
 	done
-
-	exit 0
 fi
 
 for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
