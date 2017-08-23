@@ -139,6 +139,7 @@ done
 
 [ ! -d /srv/salt/env ] && mkdir -p /srv/salt/env
 [ ! -L /srv/salt/env/dev ] && ln -s ${FORMULA_PATH}/env /srv/salt/env/dev
+[ ! -L /srv/salt/env/prd ] && ln -s ${FORMULA_PATH}/env /srv/salt/env/prd
 
 [ ! -d /etc/reclass ] && mkdir /etc/reclass
 cat << 'EOF' > /etc/reclass/reclass-config.yml
